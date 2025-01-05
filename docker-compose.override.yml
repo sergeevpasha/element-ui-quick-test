@@ -1,0 +1,10 @@
+services:
+  pgsql:
+    ports:
+      - ${DOCKER_PGSQL_PORT:-5432}:5432
+  api:
+    ports:
+      - ${DOCKER_API_PORT:-80}:8000
+  client:
+    ports:
+      - ${DOCKER_CLIENT_PORT:-8080}:8080

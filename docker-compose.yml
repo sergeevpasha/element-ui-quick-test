@@ -1,0 +1,47 @@
+services:
+  client:
+    container_name: "element_client"
+    image: node:22.12-alpine
+    volumes:
+      - ./client:/var/www
+    command: sh -c "npm install && npm run serve"
+    depends_on:
+      - api
+    working_dir: /var/www
+    user: "node"
+    environment:
+      - VUE_APP_BASE_URL=${VUE_APP_BASE_URL:-http://api:8000}
+    networks:
+      - default-network
+  api:
+    container_name: "element_api"
+    build: ./api
+    tty: true
+    volumes:
+      - ./api:/var/www:consistent
+    command: sh -c "composer install && php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"
+    depends_on:
+      - pgsql
+    restart: on-failure
+    networks:
+      - default-network
+  pgsql:
+    container_name: "element_pgsql"
+    image: postgres:16.6-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data:rw
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - default-network
+
+networks:
+  default-network:
+    name: "element-network"
+    driver: bridge
+
+volumes:
+  pgdata:
+    name: "element_pgdata"
